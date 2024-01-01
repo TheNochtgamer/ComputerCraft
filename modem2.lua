@@ -1,4 +1,4 @@
-local splitFn = require "splitFn"
+local split = require "splitFn"
 local expect = require "cc.expect"
 local expect, field = expect.expect, expect.field
 
@@ -15,13 +15,14 @@ repeat
         tostring(channel) ..
         " from " .. tostring(replyChannel) .. " at distance " .. tostring(math.floor(distance * 100) / 100) .. " blocks")
 
-    local args = splitFn(message, " ")
 
-    if args[0] == "redstone" then
-        expect(1, args[1], "back", "front", nil)
-        expect(2, args[2], "string", nil)
+    local args = split(message, " ")
 
-        redstone.setAnalogOutput(args[1] or "back", tonumber(args[2] or 1))
+    if args[1] == "redstone" then
+        expect(1, args[2], "back", "front", nil)
+        expect(2, args[3], "string", nil)
+
+        redstone.setAnalogOutput(args[2] or "back", tonumber(args[3] or 1))
     end
 until message == "stop"
 print("Stop message received")
