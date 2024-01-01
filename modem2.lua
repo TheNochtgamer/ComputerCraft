@@ -1,3 +1,5 @@
+local splitFn = require "splitFn"
+
 local modem = peripheral.find("modem") or error("No modem attached", 0)
 modem.open(99)
 
@@ -5,10 +7,16 @@ local event, side, channel, replyChannel, message, distance
 repeat
     event, side, channel, replyChannel, message, distance = os.pullEvent("modem_message")
 
-    print("Received a reply: " ..
+    print("Received a reply: '" ..
         tostring(message) ..
-        " on channel " ..
+        "' on channel " ..
         tostring(channel) ..
         " from " .. tostring(replyChannel) .. " at distance " .. tostring(math.floor(distance * 100) / 100) .. " blocks")
+
+    local args = splitFn(message, " ")
+
+    if args[0] == "redstone" then
+        redstone.setAnalogOutput(args[1] or "back", tonumber(args[2] or 1))
+    end
 until message == "stop"
 print("Stop message received")
