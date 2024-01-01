@@ -7,7 +7,7 @@ modem.open(99)
 
 local function cmds(args)
     if args[1] == "redstone" then
-        expect(1, args[2], "back", "front")
+        expect(1, args[2], "string")
         expect(2, args[3], "string", nil)
 
         redstone.setAnalogOutput(args[2], tonumber(args[3] or 1))
