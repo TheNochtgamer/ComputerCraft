@@ -27,6 +27,9 @@ repeat
 
     local args = split(message, " ")
 
-    cmds(args)
+    xpcall(cmds(args), function(err)
+        print(err)
+        -- Esto deberia responder el modem
+    end)
 until message == "stop"
 print("Stop message received")
