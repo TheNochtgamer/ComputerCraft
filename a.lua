@@ -4,4 +4,4 @@ for i = 1, 8 do turtle.forward() end
 
 local msg = arg
 
-redstone.setAnalogOutput("back", 15)
+redstone.setAnalogOutput("back", 2)
