@@ -2,7 +2,7 @@ local expect = require "cc.expect"
 
 expect(1, arg[1], "string", "nil")
 
-local filename = arg[1] or "vars.tmp"
+local filename = arg[1] or "vars.conf"
 
 local function load()
     if fs.exists(filename) == false then
@@ -40,15 +40,15 @@ local function load()
     return table
 end
 
-local function save(table)
-    expect(1, table, "table")
+local function save(_table)
+    expect(1, _table, "table")
     local file = fs.open(filename, "w")
 
     if file then
-        local function parseTable(table, indent)
+        local function parseTable(_table, indent)
             indent = indent or ""
 
-            for key, value in pairs(table) do
+            for key, value in pairs(_table) do
                 if type(value) == "table" then
                     file.write(indent .. key .. " = {" .. "\n")
                     parseTable(value, indent .. "    ")
@@ -59,7 +59,7 @@ local function save(table)
             end
         end
 
-        parseTable(table)
+        parseTable(_table)
         file.close()
         return true
     else
