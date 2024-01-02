@@ -27,7 +27,7 @@ repeat
 
     local args = split(message, " ")
 
-    local success, result = pcall(cmds(args))
+    local success, result = pcall(cmds, args)
     if not success then
         print("Error: " .. tostring(result))
     end
