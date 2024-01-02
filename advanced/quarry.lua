@@ -15,6 +15,9 @@ local config = {
 }
 
 vars.load(function(table)
+    if table == nil then
+        return
+    end
     config = table
 end)
 
