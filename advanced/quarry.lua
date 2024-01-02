@@ -46,8 +46,8 @@ local function checkDirection()
 
     local x2, _, z2 = gps.locate()
 
-    if isBackMove then
-        turtle.forward()
+    if not isBackMove then
+        turtle.back()
         if x2 > x then
             return 1
         elseif x2 < x then
@@ -58,7 +58,7 @@ local function checkDirection()
             return 2
         end
     else
-        turtle.back()
+        turtle.forward()
         if x2 > x then
             return 3
         elseif x2 < x then
