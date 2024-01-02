@@ -23,6 +23,8 @@ local function load()
 end
 load()
 
+vars.save(config)
+
 if gps.locate() == nil then
     error("No gps signal", 0)
 end
@@ -31,7 +33,6 @@ if config.start.x == 0 and config.start.y == 0 and config.start.z == 0 then
     error("No start point defined", 0)
 end
 
-vars.save(config)
 
 local function goToStart()
     local x, y, z = gps.locate()
