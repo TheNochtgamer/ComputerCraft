@@ -10,10 +10,13 @@ if fs.exists(scriptName) then
 end
 
 local file = fs.open(scriptName, "w");
-file.write("fs.delete(\"" .. scriptName .. "\")")
-file.write("shell.run(\"wget\"" ..
-    arg[1] .. "\", \"" .. scriptName .. "\")")
-file.write("shell.run(\"" .. scriptName .. "\")")
+file.write("fs.delete(\"" .. scriptName .. "\")\n")
+file.write("shell.run(\"wget\", \"" ..
+    arg[1] .. "\", \"" .. scriptName .. "\")\n")
+file.write("print(\"running\", \"" .. scriptName .. "\")")
+file.write("shell.run(\"" .. scriptName .. "\")\n")
 file.close()
+
+
 
 print("Auto script created: " .. scriptName)
