@@ -14,14 +14,14 @@ local config = {
     perimeterCorner1 = { x = 0, y = 0, z = 0 },
 }
 
-local function load()
+local function loadConfig()
     local _table = vars.load()
     if _table == nil then
         return
     end
     config = _table
 end
-load()
+loadConfig()
 
 vars.save(config)
 

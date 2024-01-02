@@ -42,26 +42,29 @@ end
 
 local function save(table)
     expect(1, table, "table")
-    local file = fs.open(filename, "w")
+    local file = fs.open(filename, "w+")
 
-    local function saveTable(table, indent)
-        expect(1, table, "table")
-        expect(2, indent, "string", "nil")
+    if file then
+        local function parseTable(table, indent)
+            indent = indent or ""
 
-        indent = indent or ""
-
-        for k, v in pairs(table) do
-            if type(v) == "table" then
-                file.write(indent .. k .. " = {\n")
-                saveTable(v, indent .. "    ")
-                file.write(indent .. "}\n")
-            else
-                file.write(indent .. k .. " = " .. tostring(v) .. "\n")
+            for key, value in pairs(table) do
+                if type(value) == "table" then
+                    file.write(indent .. key .. " = {" .. "\n")
+                    parseTable(value, indent .. "    ")
+                    file.write(indent .. "}" .. "\n")
+                else
+                    file.write(indent .. key .. " = " .. tostring(value) .. "\n")
+                end
             end
         end
-    end
 
-    saveTable(table)
+        parseTable(table)
+        file.close()
+        return true
+    else
+        return false
+    end
 end
 
 
