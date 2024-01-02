@@ -33,6 +33,44 @@ if config.start.x == 0 or config.start.y == 0 or config.start.z == 0 then
     error("No start point defined", 0)
 end
 
+-- procedures
+
+-- 0 = north | 1 = east | 2 = south | 3 = west
+local function checkDirection()
+    local x, _, z = gps.locate()
+    local isBackMove = false
+
+    if turtle.forward() == false then
+        isBackMove = turtle.back()
+    end
+
+    local x2, _, z2 = gps.locate()
+
+    if isBackMove then
+        turtle.forward()
+        if x2 > x then
+            return 1
+        elseif x2 < x then
+            return 3
+        elseif z2 > z then
+            return 0
+        elseif z2 < z then
+            return 2
+        end
+    else
+        turtle.back()
+        if x2 > x then
+            return 3
+        elseif x2 < x then
+            return 1
+        elseif z2 > z then
+            return 2
+        elseif z2 < z then
+            return 0
+        end
+    end
+    return 0
+end
 
 local function goToStart()
     local x, y, z = gps.locate()
@@ -64,8 +102,9 @@ local function checkAndRefuel()
     end
 end
 
+-- main
 local function Main()
     checkAndRefuel()
-    goToStart()
+    checkDirection()
 end
 Main()
