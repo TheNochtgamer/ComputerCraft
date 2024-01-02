@@ -5,7 +5,7 @@
 -- 3 - Tiene un punto de partida y un permitro que MINAR
 -- 4 - Al dejar de cargar los chunks y volverlos a cargar el script debe volver a iniciar en el punto que se quedo
 local split = require "splitFn"
--- local vars = require "persistenceVars"
+local vars = require "persistenceVars"
 local modem = peripheral.find("modem") or error("No modem attached", 0)
 
 local config = {
@@ -14,9 +14,9 @@ local config = {
     perimeterCorner1 = { x = 0, y = 0, z = 0 },
 }
 
--- vars.load(function(table)
---     config = table
--- end)
+vars.load(function(table)
+    config = table
+end)
 
 if gps.locate() == nil then
     error("No gps signal", 0)
@@ -26,7 +26,7 @@ if config.start.x == 0 and config.start.y == 0 and config.start.z == 0 then
     error("No start point defined", 0)
 end
 
--- vars.save(config)
+vars.save(config)
 
 local function goToStart()
     local x, y, z = gps.locate()

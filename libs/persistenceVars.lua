@@ -3,10 +3,14 @@ local expect = require "cc.expect"
 expect(1, arg[1], "string", "nil")
 
 local filename = arg[1] or "vars.tmp"
-local file = fs.open(filename, "w")
 
 local function load(callback)
     expect(1, callback, "function")
+    if fs.exists(filename) == false then
+        callback(nil)
+        return false
+    end
+    local file = fs.open(filename, "r")
 
     local function loadTable(indent)
         expect(1, indent, "string", "nil")
@@ -22,7 +26,7 @@ local function load(callback)
                 if value == "{" then
                     table[key] = loadTable(indent .. "    ")
                 elseif value == "}" then
-                    return table
+                    return true, table
                 else
                     table[key] = value
                 end
@@ -31,7 +35,7 @@ local function load(callback)
             line = file.readLine()
         end
 
-        return table
+        return true, table
     end
 
     local table = loadTable()
@@ -40,6 +44,7 @@ end
 
 local function save(table)
     expect(1, table, "table")
+    local file = fs.open(filename, "w")
 
     local function saveTable(table, indent)
         expect(1, table, "table")
