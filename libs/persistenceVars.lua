@@ -42,7 +42,7 @@ end
 
 local function save(table)
     expect(1, table, "table")
-    local file = fs.open(filename, "w+")
+    local file = fs.open(filename, "w")
 
     if file then
         local function parseTable(table, indent)
