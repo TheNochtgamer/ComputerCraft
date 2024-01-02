@@ -56,7 +56,7 @@ local function checkAndRefuel()
     local fuelLevel = turtle.getFuelLevel()
     if fuelLevel < 100 then
         local slot = 1
-        while turtle.getItemCount(slot) == 0 do
+        while turtle.getItemCount(slot) == 0 and not slot == 17 do
             slot = slot + 1
         end
         turtle.select(slot)
