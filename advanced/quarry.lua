@@ -53,9 +53,9 @@ local function checkDirection()
         elseif x2 < x then
             return 3
         elseif z2 > z then
-            return 0
-        elseif z2 < z then
             return 2
+        elseif z2 < z then
+            return 0
         end
     else
         turtle.forward()
@@ -64,9 +64,9 @@ local function checkDirection()
         elseif x2 < x then
             return 1
         elseif z2 > z then
-            return 2
-        elseif z2 < z then
             return 0
+        elseif z2 < z then
+            return 2
         end
     end
     return 0
