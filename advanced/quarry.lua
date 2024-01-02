@@ -105,6 +105,6 @@ end
 -- main
 local function Main()
     checkAndRefuel()
-    checkDirection()
+    print(checkDirection())
 end
 Main()
