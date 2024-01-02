@@ -8,7 +8,7 @@ modem.open(99)
 local function cmds(args)
     if args[1] == "redstone" then
         expect(1, args[2], "string")
-        expect(2, args[3], "string", nil)
+        expect(2, args[3], "string", "nil")
 
         redstone.setAnalogOutput(args[2], tonumber(args[3] or 1))
     end
@@ -27,9 +27,9 @@ repeat
 
     local args = split(message, " ")
 
-    xpcall(cmds(args), function(err)
-        print(err)
-        -- Esto deberia responder el modem
-    end)
+    local success, result = pcall(cmds(args))
+    if not success then
+        print("Error: " .. tostring(result))
+    end
 until message == "stop"
 print("Stop message received")
