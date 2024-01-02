@@ -14,12 +14,14 @@ local config = {
     perimeterCorner1 = { x = 0, y = 0, z = 0 },
 }
 
-vars.load(function(table)
-    if table == nil then
+local function load()
+    local _table = vars.load()
+    if _table == nil then
         return
     end
-    config = table
-end)
+    config = _table
+end
+load()
 
 if gps.locate() == nil then
     error("No gps signal", 0)

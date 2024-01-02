@@ -4,11 +4,9 @@ expect(1, arg[1], "string", "nil")
 
 local filename = arg[1] or "vars.tmp"
 
-local function load(callback)
-    expect(1, callback, "function")
+local function load()
     if fs.exists(filename) == false then
-        callback(nil)
-        return false
+        return nil
     end
     local file = fs.open(filename, "r")
 
@@ -26,7 +24,7 @@ local function load(callback)
                 if value == "{" then
                     table[key] = loadTable(indent .. "    ")
                 elseif value == "}" then
-                    return true, table
+                    return table
                 else
                     table[key] = value
                 end
@@ -35,11 +33,11 @@ local function load(callback)
             line = file.readLine()
         end
 
-        return true, table
+        return table
     end
 
     local table = loadTable()
-    callback(table)
+    return table
 end
 
 local function save(table)
