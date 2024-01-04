@@ -1,7 +1,0 @@
-{
-  "Lua.diagnostics.disable": [
-    "undefined-field",
-    "deprecated",
-    "duplicate-set-field"
-  ]
-}

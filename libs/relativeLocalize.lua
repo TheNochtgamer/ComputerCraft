@@ -1,24 +1,36 @@
+--
+-- RelativeLocalize script
+-- By TheNochtgamer
+--
+
 local config = {
     _debug = false,
-    _persistenceFile = "localize.cfg",
+    _persistentFile = "localize.cfg",
 }
 
 local relativeDisplacement = {
-    -- +1 = forward, -1 = back
-    movement = 0,
-    -- +1 = up, -1 = down
-    elevation = 0,
-    -- +1 = right, -1 = left
+    -- distances from start point
+    dx = 0,
+    dy = 0,
+    dz = 0,
+
+    -- +1 = right, -1 = left (0 .. 3)
     rotation = 0,
 }
 
-settings.define("movement.displacement", {
+settings.define("dx.displacement", {
     description = "The displacement of the turtle relative to the starting position",
     type = "number",
     default = 0,
 })
 
-settings.define("elevation.displacement", {
+settings.define("dy.displacement", {
+    description = "The displacement of the turtle relative to the starting position",
+    type = "number",
+    default = 0,
+})
+
+settings.define("dz.displacement", {
     description = "The displacement of the turtle relative to the starting position",
     type = "number",
     default = 0,
@@ -30,33 +42,53 @@ settings.define("rotation.displacement", {
     default = 0,
 })
 
-local _save       = function()
-    if config._debug then print("[F]_save") end
-    settings.set("movement.displacement", relativeDisplacement.movement)
-    settings.set("elevation.displacement", relativeDisplacement.elevation)
-    settings.set("rotation.displacement", relativeDisplacement.rotation)
-    settings.save(config._persistenceFile)
+local _load = function()
+    if config._debug then print("[F]_load") end
+    settings.load(config._persistentFile)
+    relativeDisplacement.dx = settings.get("dx.displacement")
+    relativeDisplacement.dy = settings.get("dy.displacement")
+    relativeDisplacement.dz = settings.get("dz.displacement")
+    relativeDisplacement.rotation = settings.get("rotation.displacement")
 end
 
-local ogFunctions = {
-    _forward   = turtle.forward,
-    _back      = turtle.back,
-    _up        = turtle.up,
-    _down      = turtle.down,
-    _turnLeft  = turtle.turnLeft,
-    _turnRight = turtle.turnRight
-}
+local _save = function()
+    if config._debug then print("[F]_save") end
+    settings.set("dx.displacement", relativeDisplacement.dx)
+    settings.set("dy.displacement", relativeDisplacement.dy)
+    settings.set("dz.displacement", relativeDisplacement.dz)
+    settings.set("rotation.displacement", relativeDisplacement.rotation)
+    settings.save(config._persistentFile)
+end
 
-local reset       = function()
+local _setRotation = function(rotation)
+    if rotation < 0 then
+        rotation = 3
+    elseif rotation > 3 then
+        rotation = 0
+    end
+
+    if config._debug then print("[F]_setRotation " .. tostring(rotation)) end
+    relativeDisplacement.rotation = rotation
+    _save()
+end
+
+local reset = function()
     if config._debug then print("[F]reset") end
-    relativeDisplacement.movement = 0
-    relativeDisplacement.elevation = 0
+    relativeDisplacement.dx = 0
+    relativeDisplacement.dy = 0
+    relativeDisplacement.dz = 0
     relativeDisplacement.rotation = 0
+
+    pcall(fs.delete, config._persistentFile)
 end
 
 local function isBackHome()
-    if config._debug then print("[F]isBackHome") end
-    if relativeDisplacement.movement == 0 and relativeDisplacement.elevation == 0 and relativeDisplacement.rotation == 0 then
+    if
+        relativeDisplacement.dx == 0 and
+        relativeDisplacement.dy == 0 and
+        relativeDisplacement.dz == 0 and
+        relativeDisplacement.rotation == 0
+    then
         return true
     end
     return false
@@ -66,114 +98,186 @@ local simpleGoBackHome = function()
     if config._debug then print("[F]goBackHome") end
     if isBackHome() then return true end
 
-    local movement = relativeDisplacement.movement
-    local elevation = relativeDisplacement.elevation
-    local rotation = relativeDisplacement.rotation
-
-    if movement > 0 then
-        for i = 1, movement, 1 do
-            turtle.back()
-        end
-    elseif movement < 0 then
-        for i = 1, math.abs(movement), 1 do
-            turtle.forward()
+    while relativeDisplacement.dy ~= 0 do
+        if relativeDisplacement.dy > 0 then
+            down()
+        else
+            up()
         end
     end
 
-    if elevation > 0 then
-        for i = 1, elevation, 1 do
-            turtle.down()
+    while relativeDisplacement.dz ~= 0 do
+        if relativeDisplacement.dz < 0 then
+            if relativeDisplacement.rotation == 3 then
+                turnRight()
+            elseif relativeDisplacement.rotation == 1 then
+                turnLeft()
+            elseif relativeDisplacement.rotation == 2 then
+                turnLeft()
+                turnLeft()
+            end
+        else
+            if relativeDisplacement.rotation == 1 then
+                turnLeft()
+            elseif relativeDisplacement.rotation == 3 then
+                turnRight()
+            elseif relativeDisplacement.rotation == 0 then
+                turnLeft()
+                turnLeft()
+            end
         end
-    elseif elevation < 0 then
-        for i = 1, math.abs(elevation), 1 do
-            turtle.up()
-        end
+
+        forward()
     end
 
-    if rotation > 0 then
-        for i = 1, rotation, 1 do
-            turtle.turnLeft()
+    while relativeDisplacement.dx ~= 0 do
+        if relativeDisplacement.dx < 0 then
+            if relativeDisplacement.rotation == 0 then
+                turnRight()
+            elseif relativeDisplacement.rotation == 2 then
+                turnLeft()
+            elseif relativeDisplacement.rotation == 3 then
+                turnLeft()
+                turnLeft()
+            end
+        else
+            if relativeDisplacement.rotation == 0 then
+                turnLeft()
+            elseif relativeDisplacement.rotation == 2 then
+                turnRight()
+            elseif relativeDisplacement.rotation == 1 then
+                turnLeft()
+                turnLeft()
+            end
         end
-    elseif rotation < 0 then
-        for i = 1, math.abs(rotation), 1 do
-            turtle.turnRight()
-        end
+
+        forward()
+    end
+
+    while relativeDisplacement.rotation ~= 0 do
+        turnRight()
     end
 
     return true
 end
 
-turtle.forward = function()
-    if config._debug then print("[F]forward") end
-    local res, reason = ogFunctions._forward()
+function forward()
+    local res, reason = turtle.forward()
     if not res then return res, reason end
 
-    relativeDisplacement.movement = relativeDisplacement.movement + 1
+    if relativeDisplacement.rotation == 0 then
+        relativeDisplacement.dz = relativeDisplacement.dz + 1
+        if config._debug then print("[F]forward dz +1") end
+    elseif relativeDisplacement.rotation == 1 then
+        relativeDisplacement.dx = relativeDisplacement.dx + 1
+        if config._debug then print("[F]forward dx +1") end
+    elseif relativeDisplacement.rotation == 2 then
+        relativeDisplacement.dz = relativeDisplacement.dz - 1
+        if config._debug then print("[F]forward dz -1") end
+    elseif relativeDisplacement.rotation == 3 then
+        relativeDisplacement.dx = relativeDisplacement.dx - 1
+        if config._debug then print("[F]forward dx -1") end
+    end
+    if config._debug then sleep(0.5) end
+
     _save()
 
     return true
 end
 
-turtle.back = function()
-    if config._debug then print("[F]back") end
-    local res, reason = ogFunctions._back()
+function back()
+    local res, reason = turtle.back()
     if not res then return res, reason end
 
-    relativeDisplacement.movement = relativeDisplacement.movement - 1
-    _save()
+    if relativeDisplacement.rotation == 0 then
+        relativeDisplacement.dz = relativeDisplacement.dz - 1
+        if config._debug then print("[F]back dz -1") end
+    elseif relativeDisplacement.rotation == 1 then
+        relativeDisplacement.dx = relativeDisplacement.dx - 1
+        if config._debug then print("[F]back dx -1") end
+    elseif relativeDisplacement.rotation == 2 then
+        relativeDisplacement.dz = relativeDisplacement.dz + 1
+        if config._debug then print("[F]back dz +1") end
+    elseif relativeDisplacement.rotation == 3 then
+        relativeDisplacement.dx = relativeDisplacement.dx + 1
+        if config._debug then print("[F]back dx +1") end
+    end
 
     return true
 end
 
-turtle.up = function()
-    if config._debug then print("[F]up") end
-    local res, reason = ogFunctions._up()
+function up()
+    local res, reason = turtle.up()
     if not res then return res, reason end
+    if config._debug then
+        print("[F]up")
+        sleep(0.5)
+    end
 
     relativeDisplacement.elevation = relativeDisplacement.elevation + 1
+
     _save()
 
     return true
 end
 
-turtle.down = function()
-    if config._debug then print("[F]down") end
-    local res, reason = ogFunctions._down()
+function down()
+    local res, reason = turtle.down()
     if not res then return res, reason end
+    if config._debug then
+        print("[F]down")
+        sleep(0.5)
+    end
 
     relativeDisplacement.elevation = relativeDisplacement.elevation - 1
+
     _save()
 
     return true
 end
 
-turtle.turnLeft = function()
-    if config._debug then print("[F]turnLeft") end
-    local res, reason = ogFunctions._turnLeft()
+function turnLeft()
+    local res, reason = turtle.turnLeft()
     if not res then return res, reason end
+    if config._debug then
+        print("[F]turnLeft")
+        sleep(0.5)
+    end
 
-    relativeDisplacement.rotation = relativeDisplacement.rotation - 1
+
+    _setRotation(relativeDisplacement.rotation - 1)
+
     _save()
 
     return true
 end
 
-turtle.turnRight = function()
-    if config._debug then print("[F]turnRight") end
-    local res, reason = ogFunctions._turnRight()
+function turnRight()
+    local res, reason = turtle.turnRight()
     if not res then return res, reason end
+    if config._debug then
+        print("[F]turnRight")
+        sleep(0.5)
+    end
 
-    relativeDisplacement.rotation = relativeDisplacement.rotation + 1
+    _setRotation(relativeDisplacement.rotation + 1)
+
     _save()
 
     return true
 end
-settings.load(config._persistenceFile)
 
+_load()
 return {
     reset = reset,
     isBackHome = isBackHome,
     relativeDisplacement = relativeDisplacement,
     simpleGoBackHome = simpleGoBackHome,
-    _ogFunctions = ogFunctions,
+
+    forward = forward,
+    back = back,
+    up = up,
+    down = down,
+    turnLeft = turnLeft,
+    turnRight = turnRight,
 }
