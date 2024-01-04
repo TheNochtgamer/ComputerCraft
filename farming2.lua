@@ -124,7 +124,7 @@ local function nextTile(column, row)
         repeat
             refuel()
             sleep(3)
-        until turtle.getFuelLevel() == 0
+        until turtle.getFuelLevel() > 0
         print("Refueled")
     end
 
