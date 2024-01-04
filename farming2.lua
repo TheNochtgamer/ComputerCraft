@@ -87,6 +87,10 @@ local function checkAndFarm()
     if not status then
         turtle.digDown()
         place()
+    elseif block.tags["minecraft:replaceable_plants"] then
+        down()
+        up()
+        place()
     elseif not block.tags["minecraft:crops"] then
         return
     elseif block.state.age == 7 then
