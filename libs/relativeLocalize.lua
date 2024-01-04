@@ -214,7 +214,7 @@ function up()
         sleep(0.5)
     end
 
-    relativeDisplacement.elevation = relativeDisplacement.elevation + 1
+    relativeDisplacement.dy = relativeDisplacement.dy + 1
 
     _save()
 
@@ -229,7 +229,7 @@ function down()
         sleep(0.5)
     end
 
-    relativeDisplacement.elevation = relativeDisplacement.elevation - 1
+    relativeDisplacement.dy = relativeDisplacement.dy - 1
 
     _save()
 
