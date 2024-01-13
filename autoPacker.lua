@@ -43,6 +43,7 @@ end
 function Packer()
     while true do
         local offset = 0
+        local noItems = false
 
         for i = 1, 9, 1 do
             if i == 4 then offset = 1 end
@@ -52,17 +53,24 @@ function Packer()
             if turtle.getItemCount(pos) == 0 then
                 turtle.select(pos)
                 if not turtle.suck() then
+                    noItems = true
                     break
                 end
             end
         end
 
         turtle.select(16)
+
+        if noItems then
+            break
+        end
+
         if not turtle.craft() then
             for i = 1, 16, 1 do
                 turtle.select(i)
                 turtle.drop()
             end
+            break
         end
 
         turtle.dropDown()
