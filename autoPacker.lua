@@ -79,7 +79,7 @@ end
 
 function Main()
     while true do
-        for i = 1, totalDrawers, 1 do
+        for i = 1, totalDrawers - 1, 1 do
             checkFuelAndWait()
 
             if i > 1 then next() end
