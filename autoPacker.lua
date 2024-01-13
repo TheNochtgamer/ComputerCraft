@@ -7,9 +7,14 @@ local outputItem = ""
 function Main()
     while true do
         for i = 1, 9, 1 do
+            if turtle.getItemCount(i) > 0 then
+                goto continue
+            end
+
             if not turtle.suck() then
                 sleep(20)
             end
+            ::continue::
         end
 
         if turtle.getItemDetail(4) then
@@ -24,15 +29,33 @@ function Main()
             turtle.select(1)
         end
 
-        for i = 12, 16, 1 do
-            if turtle.getItemCount(i) > 0 then
-                turtle.select(i)
+        local function dropExtra()
+            if turtle.getItemCount(4) > 0 then
+                turtle.select(4)
                 turtle.drop()
                 turtle.select(1)
             end
+
+            if turtle.getItemCount(8) > 0 then
+                turtle.select(8)
+                turtle.drop()
+                turtle.select(1)
+            end
+
+            for i = 12, 16, 1 do
+                if turtle.getItemCount(i) > 0 then
+                    turtle.select(i)
+                    turtle.drop()
+                    turtle.select(1)
+                end
+            end
         end
 
-        turtle.craft()
+
+        if not turtle.craft() then
+            dropExtra()
+            turtle.craft()
+        end
 
         for i = 1, 16, 1 do
             turtle.select(i)
@@ -45,3 +68,5 @@ function Main()
         end
     end
 end
+
+Main()
