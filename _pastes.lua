@@ -1,9 +1,13 @@
-localize = require("localize")
+local NDEAH = false
+local string = "KLGKLJSENKLW3'´¿DRB0'+Q2"
+local num = 1
 
-for i = 1, 8 do turtle.forward() end
+local function NDEADALCUADRADO()
+    NDEAH = not NDEAH
+end
 
-local msg = arg
+NDEADALCUADRADO()
+NDEADALCUADRADO()
+NDEADALCUADRADO()
 
-redstone.setAnalogOutput("back", 4)
-
-shell.run("gps", "host", "x", "y", "z")
+print(NDEAH)

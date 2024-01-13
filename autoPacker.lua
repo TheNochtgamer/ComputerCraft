@@ -24,6 +24,14 @@ function Main()
             turtle.select(1)
         end
 
+        for i = 12, 16, 1 do
+            if turtle.getItemCount(i) > 0 then
+                turtle.select(i)
+                turtle.drop()
+                turtle.select(1)
+            end
+        end
+
         turtle.craft()
 
         for i = 1, 16, 1 do
