@@ -7,14 +7,11 @@ local outputItem = ""
 function Main()
     while true do
         for i = 1, 9, 1 do
-            if turtle.getItemCount(i) > 0 then
-                goto continue
+            if turtle.getItemCount(i) == 0 then
+                if not turtle.suck() then
+                    sleep(20)
+                end
             end
-
-            if not turtle.suck() then
-                sleep(20)
-            end
-            ::continue::
         end
 
         if turtle.getItemDetail(4) then
