@@ -3,15 +3,18 @@
 -- by TheNochtgamer
 --
 
+-- Imports
 
 local imageCutter = require("imageCutter")
 local expect = require("cc.expect").expect
-local monitors = { peripheral.find("monitor") }
+local loadedMonitors = { peripheral.find("monitor") }
+
+-- Settings
 
 local filename = "monitorsArray.cfg"
 local sortedMonitors = {}
 
-if not monitors[1] then
+if not loadedMonitors[1] then
     error("No monitor attached", 0)
 end
 
@@ -40,29 +43,87 @@ settings.set("monitorsArrayWidth", settings.get("monitorsArrayWidth"))
 settings.set("monitorsArrayHeight", settings.get("monitorsArrayHeight"))
 settings.set("monitorsArray", savedMonitors)
 
-if #savedMonitors ~= #monitors then
-    settings.save(filename)
+-- Utils
 
-    for i = 1, #monitors, 1 do
-        local myId = (peripheral.getName(monitors[i])):match("%d+")
-        monitors[i].setTextScale(5)
-        monitors[i].clear()
-        monitors[i].setCursorPos(1, 1)
-        monitors[i].write(myId)
+local _runOnEveryMonitor = function(func)
+    expect(1, func, "function")
+
+    local res = {}
+
+    if #sortedMonitors == 0 then
+        for i = 1, #loadedMonitors, 1 do
+            table.insert(res, func(loadedMonitors[i], i))
+        end
+    else
+        for i = 1, #sortedMonitors, 1 do
+            table.insert(res, func(sortedMonitors[i], i))
+        end
     end
-
-    print(("%s == %s | false"):format(#savedMonitors, #monitors))
-    error("La configuracion del array no concuerda, porfavor edita el archivo monitorsArray.cfg con el orden de iz->de.",
-        0)
+    return unpack(res)
 end
 
-if settings.get("monitorsArrayWidth") * settings.get("monitorsArrayHeight") ~= #monitors then
+local function showMonsNames()
+    return _runOnEveryMonitor(function(monitor)
+        local myId = (peripheral.getName(monitor)):match("%d+")
+        monitor.setTextScale(5)
+        monitor.clear()
+        monitor.setCursorPos(1, 1)
+        monitor.write(myId)
+    end)
+end
+
+
+local function checkMonsQuantity()
+    if #savedMonitors ~= #loadedMonitors then
+        settings.save(filename)
+
+        return 0
+    end
+    return 1
+end
+
+local function checkMonsTotal()
+    if settings.get("monitorsArrayWidth") * settings.get("monitorsArrayHeight") ~= #loadedMonitors then
+        return 0
+    end
+    return 1
+end
+
+-- Fallbacks
+
+if arg[1] == "show" or arg[1] == "test" then
+    showMonsNames()
+    print("Mostrando los numeros de cada monitor.")
+    return
+end
+if arg[1] == "help" then
+    print(
+        "Debes editar el archivo monitorsArray.cfg con el orden de los monitores de 'izq' a 'der' y de 'arriba' a 'abajo'.")
+    return
+end
+if arg[1] == "clear" then
+    _runOnEveryMonitor(function(monitor)
+        monitor.clear()
+    end)
+    print("Limpiando todos los monitores.")
+    return
+end
+
+if checkMonsQuantity() == 0 then
+    print(("%s == %s | false"):format(#savedMonitors, #loadedMonitors))
+    error(
+        "La configuracion del array no concuerda, porfavor edita el archivo monitorsArray.cfg con el orden de iz->de.",
+        0)
+end
+if checkMonsTotal() == 0 then
     print(("%s * %s == %s | false"):format(settings.get("monitorsArrayWidth"), settings.get("monitorsArrayHeight"),
-        #monitors))
+        #loadedMonitors))
     error(
         "La configuracion de la posicion de monitores no concuerda, porfavor edita el archivo monitorsArray.cfg.",
         0)
 end
+
+-- Sorting Monitors
 
 for i = 1, #savedMonitors, 1 do
     local myName  = ("monitor_%s"):format(savedMonitors[i])
@@ -70,44 +131,74 @@ for i = 1, #savedMonitors, 1 do
 
     if not monitor then
         error(("Monitor en la linea %s '%s' no existe"):format(i, myName), 0)
+        return
     end
 
     table.insert(sortedMonitors, monitor)
 end
 
-local function check()
-    for i = 1, #sortedMonitors, 1 do
-        sortedMonitors[i].clear()
-        sortedMonitors[i].setTextScale(5)
-        sortedMonitors[i].setCursorPos(1, 1)
+-- Methods
 
-        sortedMonitors[i].setTextColor(colors.white)
-        sortedMonitors[i].setBackgroundColor(colors.black)
+local function testAll()
+    _runOnEveryMonitor(function(monitor, i)
+        monitor.clear()
+        monitor.setTextScale(5)
+        monitor.setCursorPos(1, 1)
 
-        sortedMonitors[i].write(i)
-        sortedMonitors[i].setCursorPos(1, 1)
-    end
+        monitor.setTextColor(colors.white)
+        monitor.setBackgroundColor(colors.black)
+
+        monitor.write(i)
+        monitor.setCursorPos(1, 1)
+    end)
 end
 
-local function draw(image)
+local function drawAll(image)
     expect(1, image, "table")
     local myTerm = term.current()
 
     local parts = imageCutter.CutsByEqualParts(image, settings.get("monitorsArrayWidth"),
         settings.get("monitorsArrayHeight"))
 
-    for i = 1, #sortedMonitors, 1 do
-        sortedMonitors[i].clear()
-        sortedMonitors[i].setTextScale(0.5)
-        sortedMonitors[i].setCursorPos(1, 1)
+    _runOnEveryMonitor(function(monitor, i)
+        monitor.clear()
+        monitor.setTextScale(0.5)
+        monitor.setCursorPos(1, 1)
 
-        term.redirect(sortedMonitors[i])
+        term.redirect(monitor)
         paintutils.drawImage(parts[i], 1, 1)
         term.redirect(myTerm)
-    end
+    end)
 end
 
+local function clearAll()
+    _runOnEveryMonitor(function(monitor)
+        monitor.clear()
+    end)
+end
+
+local function clear(id)
+    expect(1, id, "number")
+
+    local monitor = sortedMonitors[id]
+
+    if not monitor then
+        return 0, "Monitor not found"
+    end
+
+    monitor.clear()
+    return 1
+end
+
+-- TODO Una funcion para mover el mouse a una posicion en especifico en todos los monitores
+-- TODO Una funcion para escribir en todos los monitores
+
+-- Api Return
+
 return {
-    check = check,
-    draw = draw
+    monitors = sortedMonitors,
+    testAll = testAll,
+    drawAll = drawAll,
+    clearAll = clearAll,
+    clear = clear
 }
