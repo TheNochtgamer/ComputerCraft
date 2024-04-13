@@ -9,10 +9,13 @@ local imageCutter = require("imageCutter")
 local expect = require("cc.expect").expect
 local loadedMonitors = { peripheral.find("monitor") }
 
+local sortedMonitors = {}
+local sizeParts = {}
+local currentPos = {}
+
 -- Settings
 
 local filename = "monitorsArray.cfg"
-local sortedMonitors = {}
 
 if not loadedMonitors[1] then
     error("No monitor attached", 0)
@@ -45,7 +48,7 @@ settings.set("monitorsArray", savedMonitors)
 
 -- Utils
 
-local _runOnEveryMonitor = function(func)
+local function _runOnEveryMonitor(func)
     expect(1, func, "function")
 
     local res = {}
@@ -60,6 +63,23 @@ local _runOnEveryMonitor = function(func)
         end
     end
     return unpack(res)
+end
+
+local function _findMonitor(id)
+    expect(1, id, "number")
+    local monitor = {}
+
+    if #sortedMonitors == 0 then
+        monitor = loadedMonitors[id]
+    else
+        monitor = sortedMonitors[id]
+    end
+
+    if not monitor then
+        return nil, "Monitor not found"
+    end
+
+    return monitor
 end
 
 local function showMonsNames()
@@ -137,9 +157,35 @@ for i = 1, #savedMonitors, 1 do
     table.insert(sortedMonitors, monitor)
 end
 
--- Methods
+local function calculateSizeParts()
+    local totalWeight = 0
+    local totalHeight = 0
 
-local function testAll()
+    for i = 1, #sortedMonitors, 1 do
+        local monitor = sortedMonitors[i]
+        local mon_width, mon_height = monitor.getSize()
+
+        local sizeObj = {
+            monitor = monitor,
+            width = mon_width,
+            height = mon_height,
+            posX = totalWeight,
+            posY = totalHeight,
+            maxPosX = totalWeight + mon_width - 1,
+            maxPosY = totalHeight + mon_height - 1
+        }
+
+        totalWeight = totalWeight + mon_width
+        totalHeight = totalHeight + mon_height
+
+        table.insert(sizeParts, sizeObj)
+    end
+end
+calculateSizeParts()
+
+-- Endline Methods
+
+local function test()
     _runOnEveryMonitor(function(monitor, i)
         monitor.clear()
         monitor.setTextScale(5)
@@ -153,7 +199,7 @@ local function testAll()
     end)
 end
 
-local function drawAll(image)
+local function draw(image)
     expect(1, image, "table")
     local myTerm = term.current()
 
@@ -171,34 +217,84 @@ local function drawAll(image)
     end)
 end
 
-local function clearAll()
+local function clear()
     _runOnEveryMonitor(function(monitor)
         monitor.clear()
     end)
 end
 
-local function clear(id)
+local function clearOne(id)
     expect(1, id, "number")
 
-    local monitor = sortedMonitors[id]
-
-    if not monitor then
-        return 0, "Monitor not found"
+    local monitor, reason = _findMonitor(id)
+    if (not monitor) then
+        return reason
     end
 
     monitor.clear()
     return 1
 end
 
--- TODO Una funcion para mover el mouse a una posicion en especifico en todos los monitores
--- TODO Una funcion para escribir en todos los monitores
+local function getSize()
+    local totalWidth = 0
+    local totalHeight = 0
 
--- Api Return
+    _runOnEveryMonitor(function(monitor)
+        local width, height = monitor.getSize()
+
+        totalWidth = totalWidth + width
+        totalHeight = totalHeight + height
+    end)
+
+    return totalWidth, totalHeight
+end
+
+local function getCursorPos()
+    return currentPos.x, currentPos.y
+end
+
+local function setCursorPos(x, y)
+    expect(1, x, "number")
+    expect(2, y, "number")
+
+    currentPos.x = x
+    currentPos.y = y
+
+    return 1
+end
+
+local function writeOne(id, text)
+    expect(1, id, "number")
+    expect(2, text, "string")
+
+    local monitor, reason = _findMonitor(id)
+    if (not monitor) then
+        return reason
+    end
+
+    monitor.write(text)
+end
+
+-- TODO terminar de implementar el metodo write
+
+local function write(text)
+    local posX, posY = getCursorPos()
+
+    for i = 1, #sortedMonitors, 1 do
+        break
+    end
+end
+
+-- API Return
 
 return {
     monitors = sortedMonitors,
-    testAll = testAll,
-    drawAll = drawAll,
-    clearAll = clearAll,
-    clear = clear
+    test = test,
+    draw = draw,
+    clear = clear,
+    getSize = getSize,
+    clearOne = clearOne,
+    getCursorPos = getCursorPos,
+    setCursorPos = setCursorPos,
+    writeOne = writeOne
 }
