@@ -10,6 +10,7 @@ local localize = require("relativeLocalize")
 local sapplingSlot = 1;
 local fuelSlot = 16;
 local container = "minecraft:chest";
+local timeout = 20;
 
 -- ||||||||||||||||||||||||||||||||||||||
 
@@ -21,25 +22,33 @@ local flex = {
 
 -- Functions
 
+local function zSuck()
+  turtle.suck()
+  turtle.suckUp()
+  turtle.suckDown()
+end
+
 local function isLog(type)
-  local success, block;
+  local x, block;
 
   if type == 1 then
-    success, block = turtle.inspectUp();
+    x, block = turtle.inspectUp();
   elseif type == 2 then
-    success, block = turtle.inspectDown();
+    x, block = turtle.inspectDown();
   else
-    success, block = turtle.inspect();
+    x, block = turtle.inspect();
   end
 
-  -- TODO revisar si existe la propiedad tag y como manupularla
-  return success and block.tag == "#minecraft:log";
+  if (type(block.tags) == "nil" or not block.tags["minecraft:logs"]) then
+    return false;
+  end
+
+  return true;
 end
 
 local function checkFuelAndWait()
   if turtle.getFuelLevel() <= 0 then
-    flex.status = 0
-    UpdateFlex()
+    UpdateFlex(-2)
 
     repeat
       sleep(5)
@@ -48,8 +57,7 @@ local function checkFuelAndWait()
         turtle.refuel(2)
       end
     until turtle.getFuelLevel() > 0
-    flex.status = 4
-    UpdateFlex()
+    UpdateFlex(0)
     print("LOG > Fuel cargado, continuando...")
     sleep(2)
   elseif turtle.getFuelLevel() <= 10 then
@@ -76,8 +84,12 @@ end
 
 -- Main Functions
 
-function UpdateFlex()
+function UpdateFlex(level)
   term.clear();
+
+  if type(level) == "number" then
+    flex.status = level
+  end
 
   local getStatus = function()
     if flex.status == -2 then
@@ -86,10 +98,8 @@ function UpdateFlex()
       return "No se encontro contenedor"
     elseif flex.status == 0 then
       return "Esperando...";
-    elseif flex.status == 1 then
-      return "Plantando";
     elseif flex.status == 2 then
-      return "Recolectado";
+      return "Recolectando";
     elseif flex.status == 3 then
       return "Volviendo";
     end
@@ -120,7 +130,42 @@ function Main()
   while true do
     checkFuelAndWait();
 
+    for i = 1, 4, 1 do
+      localize.turnRight();
+
+      if isLog() then
+        UpdateFlex(2);
+
+        turtle.dig();
+        localize.forward();
+
+        repeat
+          turtle.digUp();
+          zSuck();
+
+          checkFuelAndWait();
+          localize.up();
+        until not isLog(1);
+
+        local desY = localize.relativeDisplacement.dy - 1;
+
+        UpdateFlex(3);
+        for i = 1, desY, 1 do
+          checkFuelAndWait();
+          localize.down();
+        end
+
+        turtle.select(sapplingSlot);
+        turtle.placeDown();
+
+        localize.back();
+        localize.down();
+      end
+    end
+
     UpdateFlex();
+
+    sleep(timeout)
   end
 end
 Main();
