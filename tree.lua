@@ -17,7 +17,8 @@ local timeout = 20;
 -- Vars
 
 local flex = {
-  status = -1
+  status = -1,
+  collected = 0
 };
 
 -- Functions
@@ -82,6 +83,29 @@ local function findContainer()
   return false
 end
 
+local function totalLoot()
+  local usedSlot = turtle.getSelectedSlot();
+
+  for i = 1, 16, 1 do
+    turtle.select(i);
+
+    if i == sapplingSlot then
+      goto next
+    elseif i == fuelSlot then
+      goto next
+    end
+
+    flex.collected = flex.collected + turtle.getItemCount();
+    ::next::
+  end
+
+  turtle.select(usedSlot);
+end
+
+local function saveLoot()
+
+end
+
 -- Main Functions
 
 function UpdateFlex(level)
@@ -98,21 +122,31 @@ function UpdateFlex(level)
       return "No se encontro contenedor"
     elseif flex.status == 0 then
       return "Esperando...";
+    elseif flex.status == 1 then
+      return "Trabajando...";
     elseif flex.status == 2 then
       return "Recolectando";
     elseif flex.status == 3 then
       return "Volviendo";
+    elseif flex.status == 99 then
+      return "Volviendo al punto de partida..."
     end
   end
 
   local lines = {
     "",
-    " -- Tree Bot -- ",
+    " ---- Tree Bot ---- ",
     "",
     " Status: " .. getStatus(),
     " Fuel: " .. turtle.getFuelLevel(),
+    "",
+    "",
     ""
   }
+
+  if flex.collected > 0 then
+    lines[7] = " Loot: " .. flex.collected;
+  end
 
   for i = 1, #lines, 1 do
     term.setCursorPos(1, i);
@@ -121,11 +155,19 @@ function UpdateFlex(level)
 end
 
 function Main()
-  repeat
-    UpdateFlex();
-    findContainer();
-    sleep(8);
-  until findContainer();
+  if not localize.isBackHome() then
+    UpdateFlex(99);
+    checkFuelAndWait();
+  end
+  localize.simpleGoBackHome();
+
+  if not findContainer() then
+    repeat
+      UpdateFlex(-1);
+      sleep(8);
+    until findContainer();
+  end
+  UpdateFlex(0);
 
   while true do
     checkFuelAndWait();
@@ -158,12 +200,17 @@ function Main()
         turtle.select(sapplingSlot);
         turtle.placeDown();
 
+        checkFuelAndWait();
         localize.back();
+        checkFuelAndWait();
         localize.down();
+
+        totalLoot();
+        UpdateFlex(1);
       end
     end
 
-    UpdateFlex();
+    UpdateFlex(0);
 
     sleep(timeout)
   end
