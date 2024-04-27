@@ -28,12 +28,12 @@ local function zSuck()
   turtle.suckDown()
 end
 
-local function isLog(type)
+local function isLog(direction)
   local x, block;
 
-  if type == 1 then
+  if direction == 1 then
     x, block = turtle.inspectUp();
-  elseif type == 2 then
+  elseif direction == 2 then
     x, block = turtle.inspectDown();
   else
     x, block = turtle.inspect();
