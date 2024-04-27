@@ -84,26 +84,32 @@ local function findContainer()
 end
 
 local function totalLoot()
-  local usedSlot = turtle.getSelectedSlot();
-
   for i = 1, 16, 1 do
-    turtle.select(i);
-
     if i == sapplingSlot then
       goto next
     elseif i == fuelSlot then
       goto next
     end
 
-    flex.collected = flex.collected + turtle.getItemCount();
+    flex.collected = flex.collected + turtle.getItemCount(i);
     ::next::
   end
-
-  turtle.select(usedSlot);
 end
 
 local function saveLoot()
+  for i = 1, 16, 1 do
+    if i == sapplingSlot then
+      goto next
+    elseif i == fuelSlot then
+      goto next
+    end
 
+    turtle.select(i);
+    turtle.drop();
+    ::next::
+  end
+
+  turtle.select(sapplingSlot);
 end
 
 -- Main Functions
@@ -171,6 +177,7 @@ function Main()
 
   while true do
     checkFuelAndWait();
+    UpdateFlex(1);
 
     for i = 1, 4, 1 do
       localize.turnRight();
@@ -210,6 +217,14 @@ function Main()
       end
     end
 
+    if not findContainer() then
+      repeat
+        UpdateFlex(-1);
+        sleep(8);
+      until findContainer();
+    end
+
+    saveLoot();
     UpdateFlex(0);
 
     sleep(timeout)
