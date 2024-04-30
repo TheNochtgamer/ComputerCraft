@@ -109,7 +109,11 @@ function Main()
   Flex()
 
   while true do
-    parallel.waitForAny(miningLoop, messageSwitch)
+    if not settings.get("isActive") then
+      messageSwitch()
+    else
+      parallel.waitForAny(miningLoop, messageSwitch)
+    end
 
     debug_loops = debug_loops + 1
     Flex()
