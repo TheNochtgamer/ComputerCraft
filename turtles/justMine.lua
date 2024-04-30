@@ -26,6 +26,8 @@ settings.define("totalMined", {
 -- Functions
 
 local function miningLoop()
+  local everyXUpdates = 0;
+
   while true do
 
     if (settings.get("isActive")) then
@@ -40,12 +42,21 @@ local function miningLoop()
       end
 
       if (success) then
+        settings.set("totalMined", settings.get("totalMined") + 1)
+        everyXUpdates = everyXUpdates + 1
+
         if (throwDirection == "forward") then
           turtle.drop()
         elseif (throwDirection == "up") then
           turtle.dropUp()
         elseif (throwDirection == "down") then
           turtle.dropDown()
+        end
+
+        if (everyXUpdates >= 10) then
+          Flex()
+          settings.save("justMine.cfg")
+          everyXUpdates = 0
         end
       end
     end
@@ -62,10 +73,15 @@ local function messageSwitch()
       settings.set("isActive", true)
 
       modem.transmit(replyChannel, listeningChannel, "Bot online")
+
     elseif (message:match("off." .. os.getComputerID()) or message:match("off.all")) then
       settings.set("isActive", false)
 
       modem.transmit(replyChannel, listeningChannel, "Bot offline")
+
+    elseif (message:match("status." .. os.getComputerID()) or message:match("status.all")) then
+      modem.transmit(replyChannel, listeningChannel, "Bot " .. (settings.get("isActive") and "activo" or "inactivo") ..
+          " y " .. settings.get("totalMined") .. "bl. minados")
     end
     Flex()
     settings.save("justMine.cfg")
@@ -85,7 +101,7 @@ function Flex()
     " Mi ID es #" .. os.getComputerID(),
     "",
     " Estado: " .. (settings.get("isActive") and "activo" or "inactivo"),
-    " Escuchando el canal: &" .. listeningChannel,
+    " Escuchando el canal: " .. listeningChannel,
     "",
     " Total minado: " .. settings.get("totalMined") .. " bloques",
     ""
