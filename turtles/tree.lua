@@ -180,6 +180,7 @@ function Main()
     UpdateFlex(1);
 
     for i = 1, 4, 1 do
+      zSuck();
       localize.turnRight();
 
       if isLog() then
@@ -194,6 +195,7 @@ function Main()
 
           checkFuelAndWait();
           localize.up();
+          UpdateFlex();
         until not isLog(1);
 
         local desY = localize.relativeDisplacement.dy - 1;
@@ -204,13 +206,16 @@ function Main()
           localize.down();
         end
 
+        zSuck();
         turtle.select(sapplingSlot);
         turtle.placeDown();
 
         checkFuelAndWait();
         localize.back();
+        zSuck();
         checkFuelAndWait();
         localize.down();
+        zSuck();
 
         totalLoot();
         UpdateFlex(1);

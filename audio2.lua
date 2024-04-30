@@ -3,25 +3,25 @@ local speaker = peripheral.find("speaker")
 
 local decoder = dfpwm.make_decoder()
 
-local args = { ... }
+local args = {
+  ...
+}
 
 function PlayLoop(filename)
-    while true do
-        for chunk in io.lines(filename, 16 * 1024) do
-            local buffer = decoder(chunk)
+  while true do
+    for chunk in io.lines(filename, 16 * 1024) do
+      local buffer = decoder(chunk)
 
-            while not speaker.playAudio(buffer) do
-                os.pullEvent("speaker_audio_empty")
-            end
-        end
-        sleep(3)
+      while not speaker.playAudio(buffer) do
+        os.pullEvent("speaker_audio_empty")
+      end
     end
+    sleep(3)
+  end
 end
 
 local function build()
-    return
+  return
 end
 
-parallel.waitForAny(
-    build()
-)
+parallel.waitForAny(build())
