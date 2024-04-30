@@ -5,9 +5,10 @@ local modem = peripheral.find("modem") or error("Requires a modem to run")
 
 -- Configs
 
-local _debug = false
+local _debug = false;
 local listeningChannel = 23;
 local mineDirection = "forward";
+local throwDirection = "down";
 
 -- Vars
 
@@ -16,6 +17,11 @@ settings.define("isActive", {
   type = "boolean",
   default = true
 })
+settings.define("totalMined", {
+  description = "Cantidad total de bloques minada",
+  type = "number",
+  default = 0
+})
 
 -- Functions
 
@@ -23,14 +29,28 @@ local function miningLoop()
   while true do
 
     if (settings.get("isActive")) then
+      local success = false
+
       if (mineDirection == "forward") then
-        turtle.dig()
+        success = turtle.dig()
       elseif (mineDirection == "up") then
-        turtle.digUp()
+        success = turtle.digUp()
       elseif (mineDirection == "down") then
-        turtle.digDown()
+        success = turtle.digDown()
+      end
+
+      if (success) then
+        if (throwDirection == "forward") then
+          turtle.drop()
+        elseif (throwDirection == "up") then
+          turtle.dropUp()
+        elseif (throwDirection == "down") then
+          turtle.dropDown()
+        end
       end
     end
+
+    sleep(1)
   end
 end
 
@@ -40,40 +60,59 @@ local function messageSwitch()
   if (channel == listeningChannel) then
     if (message:match("on." .. os.getComputerID()) or message:match("on.all")) then
       settings.set("isActive", true)
-      print("Bot iniciado, por mensaje remoto")
 
-      modem.send(replyChannel, listeningChannel, "Bot online")
+      modem.transmit(replyChannel, listeningChannel, "Bot online")
     elseif (message:match("off." .. os.getComputerID()) or message:match("off.all")) then
       settings.set("isActive", false)
-      print("Bot detenido, por mensaje remoto")
 
-      modem.send(replyChannel, listeningChannel, "Bot offline")
+      modem.transmit(replyChannel, listeningChannel, "Bot offline")
     end
+    Flex()
     settings.save("justMine.cfg")
   end
 
 end
 
 -- Main
+
+function Flex()
+  term.clear()
+
+  local lines = {
+    "",
+    " ---- JustMine Bot ---- ",
+    "",
+    " Mi ID es #" .. os.getComputerID(),
+    "",
+    " Estado: " .. (settings.get("isActive") and "activo" or "inactivo"),
+    " Escuchando el canal: &" .. listeningChannel,
+    "",
+    " Total minado: " .. settings.get("totalMined") .. " bloques",
+    ""
+  }
+
+  for i = 1, #lines, 1 do
+    term.setCursorPos(1, i);
+    term.write(lines[i]);
+  end
+end
+
 function Main()
   settings.load("justMine.cfg")
   settings.set("isActive", settings.get("isActive"))
+  settings.set("totalMined", settings.get("totalMined"))
   settings.save("justMine.cfg")
+
   modem.open(listeningChannel)
-
-  term.clear()
-  term.setCursorPos(1, 1)
-
-  print("JustMine iniciado")
-  print("Escuchando en canal " .. listeningChannel)
-  print("Estado: " .. (settings.get("isActive") and "activo" or "inactivo"))
-  print("")
-
   local debug_loops = 0;
+
+  Flex()
+
   while true do
     parallel.waitForAny(miningLoop, messageSwitch)
 
     debug_loops = debug_loops + 1
+    Flex()
     if (_debug) then
       print("loop " .. debug_loops)
     end
