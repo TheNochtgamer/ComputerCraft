@@ -6,12 +6,20 @@ local function checkAndRefuel()
     turtle.refuel()
   end
 
+  if turtle.getFuelLevel() < 1 then
+    error("Not enough fuel")
+  end
+
   turtle.select(slot)
 
 end
 
 local function tryBuild()
   local success = nil
+
+  if turtle.detectDown() then
+    return 2
+  end
 
   if turtle.getItemCount(turtle.getSelectedSlot()) == 0 then
     for i = 1, 16, 1 do
@@ -27,12 +35,15 @@ local function tryBuild()
     success = turtle.placeDown()
   end
 
-  return success
+  if not success then
+    return 0
+  end
+  return 1
 end
 
 function Main()
   while true do
-    if not tryBuild() then
+    if tryBuild() == 0 then
       error("No more blocks to build")
     end
     checkAndRefuel()
