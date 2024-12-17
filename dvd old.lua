@@ -1,4 +1,4 @@
-local mons = { peripheral.find("monitor") or error("No monitor attached") }
+local mon = peripheral.find("monitor") or error("No monitor attached")
 
 local config = {
     -- The text to display
